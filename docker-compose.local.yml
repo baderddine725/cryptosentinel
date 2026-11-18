@@ -1,0 +1,10 @@
+# Laptop-only additions. Stand-ins for AWS services:
+#   - DynamoDB Local (official AWS image) instead of Amazon DynamoDB
+#   - the data lake is a folder (./data/lake) instead of S3   (STORAGE=local)
+#   - notifications are printed to the logs instead of SNS     (NOTIFY=log)
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    network_mode: host
+    restart: always
+    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory -port 8000"

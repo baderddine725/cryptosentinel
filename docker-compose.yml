@@ -1,0 +1,42 @@
+# CryptoSentinel — services shared by the laptop and EC2.
+# Laptop: docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+# EC2:    docker compose up -d --build
+x-app: &app
+  build: .
+  network_mode: host
+  env_file: .env
+  restart: always
+  depends_on: [kafka]
+  volumes:
+    - ./data:/app/data
+
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    network_mode: host
+    restart: always
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_HEAP_OPTS: "-Xmx1G -Xms1G"
+
+  price-producer:
+    <<: *app
+    command: python producers/price_producer.py
+
+  news-producer:
+    <<: *app
+    command: python producers/news_producer.py
+
+  lake-sink:
+    <<: *app
+    command: python processing/lake_sink.py
