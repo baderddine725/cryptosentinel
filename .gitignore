@@ -5,3 +5,7 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 *.pem
+
+# large local files
+*.zip
+*.mp4
