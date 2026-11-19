@@ -66,7 +66,9 @@ if [ "$SG" = "None" ] || [ -z "$SG" ]; then
   SG=$(aws ec2 create-security-group --group-name cs-sg --description "CryptoSentinel" \
        --vpc-id "$VPC" --query GroupId --output text); ok "cs-sg created ($SG)"
 else ok "cs-sg exists ($SG)"; fi
-MYIP=$(curl -s https://checkip.amazonaws.com)/32
+# In the lab terminal, curl would return the LAB's IP, not your laptop's: export MYIP=x.x.x.x/32 first.
+MYIP=${MYIP:-$(curl -s https://checkip.amazonaws.com)/32}
+case "$MYIP" in */32) ;; *) MYIP="$MYIP/32" ;; esac
 for port in 22 8501; do
   aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol tcp --port $port \
     --cidr "$MYIP" >/dev/null 2>&1 && ok "port $port open to $MYIP" || ok "port $port rule already there"
